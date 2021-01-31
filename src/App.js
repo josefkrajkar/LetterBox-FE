@@ -3,6 +3,7 @@ import styled from  'styled-components';
 import Loader from './Loader';
 import Chat from './Chat';
 import axios from 'axios';
+import CryptoJS from 'crypto-js';
 
 const Wrapper = styled.div`
   background: #50bf59;
@@ -15,7 +16,7 @@ const Wrapper = styled.div`
   top: 0;
 `;
 
-const Paper = styled.div`
+export const Paper = styled.div`
   position: relative;
   margin: auto;
   width: 300px;
@@ -34,7 +35,7 @@ const Letter = styled.img`
   margin: 70px auto 0;
 `;
 
-const WelcomeText = styled.h2`
+export const WelcomeText = styled.h2`
   color: #50bf59;
   margin: 30px auto 0;
 `;
@@ -51,7 +52,7 @@ const LoadText = styled(WelcomeText)`
   margin: 10px auto 70px;
 `;
 
-const Button = styled.div`
+const Button = styled.button`
   margin: 30px auto 0px;
   cursor: pointer;
   background: #50bf59;
@@ -61,14 +62,17 @@ const Button = styled.div`
   font-weight: 600;
   border-radius: 10px;
   transition: 300ms ease-in-out;
+  border: none;
+  outline: none;
   &:hover {
     background: #409e48;
     color: #ffffff;
   }
 `;
 
-const CreateButton = styled(Button)`
+export const CreateButton = styled(Button)`
   margin: 30px auto 0px;
+  padding: 10px 30px;
 `;
 
 const SadButton = styled(Button)`
@@ -89,7 +93,7 @@ const SmallText = styled.p`
   }
 `;
 
-const Input = styled.input`
+export const Input = styled.input`
   padding: 5px 10px;
   border: 2px solid #50bf59;
   border-radius: 5px;
@@ -103,53 +107,51 @@ const Input = styled.input`
   }
 `;
 
+export const Form = styled.form`
+  flex: 0 0 auto;
+  display: flex;
+  flex-flow: column;
+`;
+
 function App() {
   const [state, setState] = React.useState({
-    password: undefined,
     step: 0,
     name: '',
-    pass: ''
+    pass: '',
+    uuid: undefined
   });
 
   const renderContent = () => {
     switch (state.step) {
       case 3: return (
         <React.Fragment>
+
           <Loader />
+
           <LoadText>
-            Loading ...
+            Loading
           </LoadText>
+
         </React.Fragment>
       )
       case 2: return (
         <React.Fragment>
 
           <PassText>
-            Enter existing chat-room
+            Enter existing chatroom
           </PassText>
 
-          <Input
-            placeholder='Room name'
-            value={state.name}
-            onChange={(e) => setState({...state, name: e.target.value})}
-          />
-
-          <Input
-            placeholder='Password'
-            type='password'
-            value={state.pass}
-            onChange={(e) => setState({...state, pass: e.target.value})}
-          />
-
-          <CreateButton
-            onClick={() => {
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setState((actState) => ({...actState, step: 3}));
               axios.post('/api/enterRoom', {
                 name: state.name,
-                pass: state.pass
+                pass: CryptoJS.SHA512(state.pass).toString(CryptoJS.enc.Base64)
               })
               .then(result => {
                 console.log(result);
-                setState({...state, step: 4});
+                setState({...state, step: 4, uuid: result.data.uuid});
               })
               .catch(err => {
                 console.error(err);
@@ -162,14 +164,33 @@ function App() {
               })
             }}
           >
-            Enter
-          </CreateButton>
 
-          <SmallText
-            onClick={() => setState({...state, step: 1, pass: '', name: ''})}
-          >
-            or create new chat-room
-          </SmallText>
+            <Input
+              placeholder='Room name'
+              value={state.name}
+              autoFocus
+              onChange={(e) => setState({...state, name: e.target.value})}
+            />
+
+            <Input
+              placeholder='Password'
+              type='password'
+              value={state.pass}
+              onChange={(e) => setState({...state, pass: e.target.value})}
+            />
+
+            <CreateButton
+              type='submit'
+            >
+              Enter
+            </CreateButton>
+
+            <SmallText
+              onClick={() => setState({...state, step: 1, pass: '', name: ''})}
+            >
+              or create new chatroom
+            </SmallText>
+          </Form>
 
         </React.Fragment>
       )
@@ -177,32 +198,19 @@ function App() {
         <React.Fragment>
 
           <PassText>
-            Set name and password for your new chat-room
+            Set name and password for your new chatroom
           </PassText>
 
-          <Input
-            placeholder='Room name'
-            value={state.name}
-            onChange={(e) => setState({...state, name: e.target.value})}
-          />
-
-          <Input
-            placeholder='Password'
-            type='password'
-            value={state.pass}
-            onChange={(e) => setState({...state, pass: e.target.value})}
-          />
-
-          <CreateButton
-            onClick={() => {
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
               setState((actState) => ({...actState, step: 3}));
               axios.post('/api/createRoom', {
                 name: state.name,
-                pass: state.pass
+                pass: CryptoJS.SHA512(state.pass).toString(CryptoJS.enc.Base64)
               })
               .then(result => {
-                console.log(result);
-                setState({...state, step: 4});
+                setState({...state, step: 4, uuid: result.data.uuid});
               })
               .catch(err => {
                 console.error(err);
@@ -215,27 +223,49 @@ function App() {
               })
             }}
           >
-            Create
-          </CreateButton>
 
-          <SmallText
-            onClick={() => setState({...state, step: 2, pass: '', name: ''})}
-          >
-            or enter existing room
-          </SmallText>
+            <Input
+              placeholder='Room name'
+              value={state.name}
+              autoFocus
+              onChange={(e) => setState({...state, name: e.target.value})}
+            />
 
+            <Input
+              placeholder='Password'
+              type='password'
+              value={state.pass}
+              onChange={(e) => setState({...state, pass: e.target.value})}
+            />
+
+            <CreateButton
+              type='submit'
+            >
+              Create
+            </CreateButton>
+
+            <SmallText
+              onClick={() => setState({...state, step: 2, pass: '', name: ''})}
+            >
+              or enter existing room
+            </SmallText>
+
+          </Form>
         </React.Fragment>
       );
       case -1: return (
         <React.Fragment>
+
           <WrongText>
-            Sorry, but entered credentials are not valid
+            Sorry, but entered values are not valid
           </WrongText>
+
           <SadButton
             onClick={() => setState({...state, step: 0})}
           >
             Sad But True
           </SadButton>
+
         </React.Fragment>
       )
       default: return (
@@ -246,9 +276,7 @@ function App() {
           </WelcomeText>
 
           <Button
-            onClick={() => {
-              setState({...state, step: 1})
-            }}
+            onClick={() => setState({...state, step: 1})}
           >
             New encrypted chatroom
           </Button>
@@ -267,16 +295,22 @@ function App() {
   if (state.step === 4) {
     return (
       <Wrapper>
+
         <Chat
-          goHome={() => setState({...state, step: 0})}
+          goHome={() => setState({...state, step: 0, name: '', pass: '', uuid: undefined})}
+          uuid={state.uuid}
+          pass={state.pass}
         />
+
       </Wrapper>
     )
   }
 
   return (
     <Wrapper>
+
       <Paper>
+        
         <Letter
           src={
             state.step === -1
@@ -285,9 +319,11 @@ function App() {
           }
           alt='letter'
         />
+
         {
           renderContent()
         }
+
       </Paper>
 
     </Wrapper>
