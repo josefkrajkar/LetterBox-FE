@@ -96,7 +96,7 @@ export default function Chat(props) {
       ws.close();
     }
 
-    ws = new WebSocket(`ws://localhost:6969?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
+    ws = new WebSocket(`ws://peaceful-refuge-45943.herokuapp.com?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
     ws.onopen = () => {
       console.log('Connection opened!');
     }
