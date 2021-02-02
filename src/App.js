@@ -145,12 +145,12 @@ function App() {
             onSubmit={(e) => {
               e.preventDefault();
               setState((actState) => ({...actState, step: 3}));
-              axios.post('https://peaceful-refuge-45943.herokuapp.com/api/enterRoom', {
+              // axios.post('https://peaceful-refuge-45943.herokuapp.com/api/enterRoom', {
+              axios.post('http://localhost:3001/api/enterRoom', {
                 name: state.name,
                 pass: CryptoJS.SHA512(state.pass).toString(CryptoJS.enc.Base64)
               })
               .then(result => {
-                console.log(result);
                 setState({...state, step: 4, uuid: result.data.uuid});
               })
               .catch(err => {
@@ -205,7 +205,8 @@ function App() {
             onSubmit={(e) => {
               e.preventDefault();
               setState((actState) => ({...actState, step: 3}));
-              axios.post('https://peaceful-refuge-45943.herokuapp.com/api/createRoom', {
+              // axios.post('https://peaceful-refuge-45943.herokuapp.com/api/createRoom', {
+              axios.post('http://localhost:3001/api/createRoom', {
                 name: state.name,
                 pass: CryptoJS.SHA512(state.pass).toString(CryptoJS.enc.Base64)
               })
@@ -268,6 +269,21 @@ function App() {
 
         </React.Fragment>
       )
+      case -2: return (
+        <React.Fragment>
+
+          <WrongText>
+            Sorry, your room is closed
+          </WrongText>
+
+          <SadButton
+            onClick={() => setState({...state, step: 0})}
+          >
+            onClick
+          </SadButton>
+
+        </React.Fragment>
+      )
       default: return (
         <React.Fragment>
 
@@ -298,6 +314,7 @@ function App() {
 
         <Chat
           goHome={() => setState({...state, step: 0, name: '', pass: '', uuid: undefined})}
+          closeRoom={() => setState({...state, step: -2, name: '', pass: '', uuid: undefined})}
           uuid={state.uuid}
           pass={state.pass}
         />

@@ -76,10 +76,10 @@ let ws;
 
 export default function Chat(props) {
   const [state, setState] = React.useState({
-    chat: [],
     message: '',
     nick: undefined
   });
+  const [msgs, setMsgs] = React.useState([]);
   const {uuid, pass} = props;
 
   const encrypt = (message) => {
@@ -96,16 +96,19 @@ export default function Chat(props) {
       ws.close();
     }
 
-    ws = new WebSocket(`ws://peaceful-refuge-45943.herokuapp.com?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
+    // ws = new WebSocket(`ws://peaceful-refuge-45943.herokuapp.com?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
+    ws = new WebSocket(`ws://localhost:3001?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
     ws.onopen = () => {
       console.log('Connection opened!');
     }
     ws.onmessage = ({ data }) => {
-      setState((actState) => {
-        let newChat = [...actState.chat];
-        newChat.push(decrypt(data));
-        return {...actState, chat: newChat}
-      });
+      let newMsgs = [...msgs];
+      newMsgs.push(decrypt(data));
+      setMsgs(newMsgs);
+    }
+    ws.onerror = () => {
+      ws = null;
+      props.closeRoom();
     }
     ws.onclose = () => {
       ws = null;
@@ -116,12 +119,14 @@ export default function Chat(props) {
     init();
   }
 
+  console.log('msgs', msgs);
+
   React.useEffect(() => {
     const element = document.getElementById('chatView');
     if (element) {
       element.scrollTop = element.scrollHeight;
     }
-  }, [state.chat]);
+  }, [msgs]);
 
   return (
     <React.Fragment>
@@ -130,11 +135,12 @@ export default function Chat(props) {
         !state.nick &&
         <NickNameModal
           setNick={(nick) => {
-            const msg = `${nick} just entered room ...`;
-            let newChat = [...state.chat];
-            newChat.push(msg);
-            setState({...state, nick, chat: newChat});
+            const msg = `${nick} just entered the room ...`;
+            let newMsgs = [...msgs];
+            newMsgs.push(msg);
+            setMsgs(newMsgs);
             ws.send(encrypt(msg));
+            setState({...state, nick});
           }}
         />
       }
@@ -180,7 +186,7 @@ export default function Chat(props) {
         id='chatView'
       >
         {
-          state.chat.map((item, key) => {
+          msgs.map((item, key) => {
             return <Line key={key}>{item}</Line>;
           })
         }
@@ -191,9 +197,10 @@ export default function Chat(props) {
           onSubmit={(e) => {
             e.preventDefault();
             ws.send(encrypt(`${state.nick}: ${state.message}`));
-            let newChat = [...state.chat];
-            newChat.push(`${state.nick}: ${state.message}`);
-            setState({...state, message: '', chat: newChat});
+            let newMsgs = [...msgs];
+            newMsgs.push(`${state.nick}: ${state.message}`);
+            setMsgs(newMsgs);
+            setState({...state, message: ''});
           }}
         >
           <Input
