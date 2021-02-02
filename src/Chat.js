@@ -95,15 +95,19 @@ export default function Chat(props) {
       ws.onerror = ws.onopen = ws.onclose = null;
       ws.close();
     }
+    ws = new WebSocket(`ws://peaceful-refuge-45943.herokuapp.com?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
+    // ws = new WebSocket(`ws://localhost:3001?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
+  };
 
-    // ws = new WebSocket(`ws://peaceful-refuge-45943.herokuapp.com?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
-    ws = new WebSocket(`ws://localhost:3001?uuid=${uuid}&pass=${CryptoJS.SHA512(pass).toString(CryptoJS.enc.Base64)}`);
+
+  if (ws) {
     ws.onopen = () => {
       console.log('Connection opened!');
     }
-    ws.onmessage = ({ data }) => {
+    ws.onmessage = (evt) => {
       let newMsgs = [...msgs];
-      newMsgs.push(decrypt(data));
+      const newMsg = decrypt(evt.data);
+      newMsgs.push(newMsg);
       setMsgs(newMsgs);
     }
     ws.onerror = () => {
@@ -113,13 +117,9 @@ export default function Chat(props) {
     ws.onclose = () => {
       ws = null;
     }
-  };
-
-  if (!ws) {
+  } else {
     init();
   }
-
-  console.log('msgs', msgs);
 
   React.useEffect(() => {
     const element = document.getElementById('chatView');

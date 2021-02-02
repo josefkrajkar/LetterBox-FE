@@ -145,8 +145,8 @@ function App() {
             onSubmit={(e) => {
               e.preventDefault();
               setState((actState) => ({...actState, step: 3}));
-              // axios.post('https://peaceful-refuge-45943.herokuapp.com/api/enterRoom', {
-              axios.post('http://localhost:3001/api/enterRoom', {
+              axios.post('https://peaceful-refuge-45943.herokuapp.com/api/enterRoom', {
+              // axios.post('http://localhost:3001/api/enterRoom', {
                 name: state.name,
                 pass: CryptoJS.SHA512(state.pass).toString(CryptoJS.enc.Base64)
               })
@@ -205,8 +205,8 @@ function App() {
             onSubmit={(e) => {
               e.preventDefault();
               setState((actState) => ({...actState, step: 3}));
-              // axios.post('https://peaceful-refuge-45943.herokuapp.com/api/createRoom', {
-              axios.post('http://localhost:3001/api/createRoom', {
+              axios.post('https://peaceful-refuge-45943.herokuapp.com/api/createRoom', {
+              // axios.post('http://localhost:3001/api/createRoom', {
                 name: state.name,
                 pass: CryptoJS.SHA512(state.pass).toString(CryptoJS.enc.Base64)
               })
